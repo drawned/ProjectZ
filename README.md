@@ -8,8 +8,6 @@ This mod was originally made for the "Projeto Z" Minecraft modpack.
 - Hearing system, similar to Decimation and The Walking Craft, sounds attract zombies
 - Stealth system, crawling, crouching and standing in the dark can make you almost invisible to Zombies.
 - Horde system
-
-
 - Rain Damage: Custom mechanic to make players get hurt and damage helmets if they stand outside, in the rain, compatibility with Protomanly's Weather.
 
 ## Platform/version
