@@ -1,0 +1,34 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+displayURL = "https://github.com/drawned/ProjectZ"
+logoFile = "logo.png"
+authors = "Drawn"
+license = "MIT"
+
+[[mixins]]
+config = "projectz.mixins.json"
+
+[[mods]]
+modId = "projectz"
+version = "1.0.0-beta"
+displayName = "Project Z"
+description = "Exclusive mod made for the 'Projeto Z' modpack."
+
+[[dependencies.projectz]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.projectz]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.0.180,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.projectz]]
+modId = "ignitehud"
+type = "optional"
+side = "CLIENT"
