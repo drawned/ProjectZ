@@ -13,7 +13,7 @@ import net.neoforged.neoforge.common.NeoForge;
 
 @Mod(ProjectZ.MODID)
 public class ProjectZ {
-    public static final String MODID = "projetoz";
+    public static final String MODID = "projectz";
 
     public static int HORDE_CAP = 800;
     public static int HORDE_DAY_INTERVAL = 5;
