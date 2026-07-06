@@ -3,6 +3,7 @@ package me.drawn.projectz.client;
 import com.deadzoke.ignitehud.api.widget.WidgetAttribute;
 import com.deadzoke.ignitehud.client.GuiPlayerAttributes;
 import com.deadzoke.ignitehud.util.ColorUtil;
+import cpw.mods.util.Lazy;
 import me.drawn.projectz.client.renders.FastZombieRenderer;
 import me.drawn.projectz.ProjectZ;
 import net.minecraft.client.Minecraft;
@@ -16,6 +17,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(modid = ProjectZ.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
@@ -56,25 +58,24 @@ public class ClientModEvents {
     private static StaminaValues getCurrentStamina() {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
-
         if(player == null) return StaminaValues.empty;
 
-        CompoundTag persistentData = player.getPersistentData();
-        if (persistentData.contains("parcool:stamina", Tag.TAG_COMPOUND)) {
-            CompoundTag staminaTag = persistentData.getCompound("parcool:stamina");
+        CompoundTag attachmentsNbt = player.serializeAttachments(player.registryAccess());
+        if (attachmentsNbt != null && attachmentsNbt.contains("parcool:stamina")) {
+            CompoundTag staminaTag = attachmentsNbt.getCompound("parcool:stamina");
 
             int current = staminaTag.getInt("value");
             int max     = staminaTag.getInt("max");
             boolean exhausted = staminaTag.getBoolean("exhausted");
 
-            int hudValue = (current / max) * 100;
+            int hudValue = (int) ((current / (float) max) * 100);
 
             return new StaminaValues(current, max, exhausted, hudValue);
         }
         return StaminaValues.empty;
     }
 
-    public record StaminaValues(int curent, int max, boolean exhausted, int hudValue) {
+    public record StaminaValues(int current, int max, boolean exhausted, int hudValue) {
         public static final StaminaValues empty = new StaminaValues(2000, 2000, false, 100);
     }
 

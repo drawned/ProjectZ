@@ -6,9 +6,13 @@
   "mixins": [
     "ExperienceMixins$LivingEntityMixin",
     "ExperienceMixins$MonsterMixin",
+    "VoxyRenderSystemMixin",
     "ZombieMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "client": [
+    "KeyboardMixin"
+  ]
 }
