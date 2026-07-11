@@ -73,7 +73,7 @@ public class ModCommands {
 
         Random rand = new Random();
         double angle = rand.nextDouble() * 2 * Math.PI;
-        double radius = 3200.0;
+        double radius = 6000F;
 
         double flightHeight = targetPos.getY() + 200.0;
         double startX = targetPos.getX() + Math.cos(angle) * radius;

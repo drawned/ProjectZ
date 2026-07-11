@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import me.drawn.projectz.ProjectZ;
 import me.drawn.projectz.network.AirdropVisualPayload;
+import me.drawn.projectz.registry.ModSoundEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
@@ -65,9 +67,9 @@ public class ClientPlaneManager {
 
             ClientLevel level = Minecraft.getInstance().level;
             if (level != null && ticksExisted % 40 == 0) {
-                var sound = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "airplane_sound"));
+                var sound = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "airplane"));
                 if (sound != null) {
-                    level.playLocalSound(x, y, z, sound, SoundSource.AMBIENT, 10.0F, 1.0F, false);
+                    level.playLocalSound(x, y, z, sound, SoundSource.AMBIENT, 160F, 1.0F, false);
                 }
             }
         }

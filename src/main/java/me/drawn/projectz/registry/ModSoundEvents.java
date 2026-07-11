@@ -10,6 +10,6 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 public class ModSoundEvents {
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS = DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, ProjectZ.MODID);
 
-    public static final DeferredHolder<SoundEvent, SoundEvent> AIRPLANE_SOUND = SOUND_EVENTS.register("airplane_sound",
-            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "airplane_sound")));
+    public static final DeferredHolder<SoundEvent, SoundEvent> AIRPLANE_SOUND = SOUND_EVENTS.register("airplane",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "airplane")));
 }
