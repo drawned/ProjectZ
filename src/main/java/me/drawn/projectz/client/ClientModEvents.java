@@ -4,20 +4,31 @@ import com.deadzoke.ignitehud.api.widget.WidgetAttribute;
 import com.deadzoke.ignitehud.client.GuiPlayerAttributes;
 import com.deadzoke.ignitehud.util.ColorUtil;
 import me.drawn.projectz.ProjectZ;
+import me.drawn.projectz.client.renders.AirdropCrateRenderer;
+import me.drawn.projectz.client.renders.LootEntityRenderer;
+import me.drawn.projectz.config.LootConfigManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(modid = ProjectZ.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
 
     private static final ResourceLocation STAMINA = ResourceLocation.parse("minecraft:textures/hud/stamina.png");
     private static final ResourceLocation STAMINA_EXHAUSTED = ResourceLocation.parse("minecraft:textures/hud/stamina_exhausted.png");
+
+    @SubscribeEvent
+    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(ProjectZ.AIRDROP_CRATE_ENTITY.get(), AirdropCrateRenderer::new);
+        event.registerEntityRenderer(ProjectZ.LOOT_ENTITY.get(), LootEntityRenderer::new);
+    }
 
     @SubscribeEvent
     public static void onClientSetup(FMLClientSetupEvent event) {

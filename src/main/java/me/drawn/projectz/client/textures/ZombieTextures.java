@@ -1,4 +1,4 @@
-package me.drawn.projectz.client.renders;
+package me.drawn.projectz.client.textures;
 
 import net.minecraft.resources.ResourceLocation;
 

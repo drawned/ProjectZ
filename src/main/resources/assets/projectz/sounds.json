@@ -1,0 +1,8 @@
+{
+  "airplane_sound": {
+    "category": "ambient",
+    "sounds": [
+      "projectz:airplane"
+    ]
+  }
+}

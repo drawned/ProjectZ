@@ -2,6 +2,7 @@ package me.drawn.projectz.client.renders;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import me.drawn.projectz.client.RealisticZombieModel;
+import me.drawn.projectz.client.textures.ZombieTextures;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ZombieModel;
 import net.minecraft.client.model.geom.ModelLayers;
