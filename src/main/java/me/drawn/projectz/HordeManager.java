@@ -100,14 +100,10 @@ public class HordeManager {
                 radius = (radius > 4) ? 4.0 : radius;
 
             // suppressors & silencers
-            if(name.contains("suppre"))
-                radius = (radius > 6) ? 6.0 : radius;
-            if(name.contains("silen"))
-                radius = (radius > 6) ? 6.0 : radius;
-            if(name.contains("_s"))
+            if(name.contains("suppre") || name.contains("silen") || name.contains("_s"))
                 radius = (radius > 6) ? 6.0 : radius;
 
-            if(name.contains("generic") && name.contains("eat"))
+            if(name.contains("eat"))
                 radius = (radius > 6) ? 6.0 : radius;
 
             //System.out.println("atPosition: "+name+" - "+radius+" - "+e.getSource().getName());

@@ -3,30 +3,18 @@ package me.drawn.projectz.client;
 import com.deadzoke.ignitehud.api.widget.WidgetAttribute;
 import com.deadzoke.ignitehud.client.GuiPlayerAttributes;
 import com.deadzoke.ignitehud.util.ColorUtil;
-import cpw.mods.util.Lazy;
-import me.drawn.projectz.client.renders.FastZombieRenderer;
 import me.drawn.projectz.ProjectZ;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.EntityType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.attachment.AttachmentType;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
 @EventBusSubscriber(modid = ProjectZ.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ClientModEvents {
-
-    @SubscribeEvent
-    public static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerEntityRenderer(EntityType.ZOMBIE, FastZombieRenderer::new);
-    }
 
     private static final ResourceLocation STAMINA = ResourceLocation.parse("minecraft:textures/hud/stamina.png");
     private static final ResourceLocation STAMINA_EXHAUSTED = ResourceLocation.parse("minecraft:textures/hud/stamina_exhausted.png");
