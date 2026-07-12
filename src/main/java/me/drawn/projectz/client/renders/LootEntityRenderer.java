@@ -11,6 +11,8 @@ import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -44,6 +46,7 @@ public class LootEntityRenderer extends EntityRenderer<LootEntity> {
             case "weapon" -> ProjectZ.CRATE_WEAPON.get();
             case "crate", "small" -> ProjectZ.CRATE.get();
             case "car", "mechanics", "toolbox" -> ProjectZ.CRATE_CAR.get();
+            case "drink" -> ProjectZ.CRATE_DRINK.get();
             case "large", "big", "large_crate" -> ProjectZ.CRATE_LARGE.get();
             case "medic" -> ProjectZ.CRATE_MEDIC.get();
             case "ammo" -> ProjectZ.CRATE_AMMO.get();

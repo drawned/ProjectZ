@@ -15,7 +15,11 @@ import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 public class LootEntity extends Entity implements Container {
@@ -104,8 +108,17 @@ public class LootEntity extends Entity implements Container {
         String id = getLootId();
         if (!id.isEmpty()) {
             var rolled = LootConfigManager.rollLoot(id);
-            for (int i = 0; i < Math.min(rolled.size(), items.size()); i++) {
-                this.items.set(i, rolled.get(i));
+
+            List<Integer> slots = new ArrayList<>();
+            for (int i = 0; i < 27; i++) {
+                slots.add(i);
+            }
+
+            Collections.shuffle(slots);
+
+            for (int i = 0; i < Math.min(rolled.size(), slots.size()); i++) {
+                int randomSlot = slots.get(i);
+                this.items.set(randomSlot, rolled.get(i));
             }
         }
     }
@@ -186,18 +199,18 @@ public class LootEntity extends Entity implements Container {
         this.items.clear();
     }
 
-    /*@Override
-    public final void discard() {
-        super.discard();
+    @Override
+    public void remove(Entity.@NotNull RemovalReason reason) {
+        super.remove(reason);
         if (!this.level().isClientSide() && originPointId != null) {
-            for (var pt : LootConfigManager.getLootPoints()) {
+            for (LootConfigManager.LootPoint pt : LootConfigManager.getLootPoints()) {
                 if (pt.id.equals(originPointId)) {
                     pt.activeEntityUuid = null;
                     break;
                 }
             }
         }
-    }*/
+    }
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {

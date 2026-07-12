@@ -53,6 +53,7 @@ public class ProjectZ {
 
     public static final DeferredHolder<Item, Item> CRATE = ITEMS.register("small_crate", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> CRATE_CAR = ITEMS.register("car_crate", () -> new Item(new Item.Properties()));
+    public static final DeferredHolder<Item, Item> CRATE_DRINK = ITEMS.register("drink_crate", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> CRATE_LARGE = ITEMS.register("crate", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> CRATE_WEAPON = ITEMS.register("weapon_crate", () -> new Item(new Item.Properties()));
     public static final DeferredHolder<Item, Item> CRATE_AMMO = ITEMS.register("ammo_crate", () -> new Item(new Item.Properties()));

@@ -194,7 +194,10 @@ public class LootConfigManager {
                 if (roll < current) {
                     Item item = BuiltInRegistries.ITEM.get(ResourceLocation.parse(lootItem.id));
                     if (item != null && item != net.minecraft.world.item.Items.AIR) {
-                        int count = 1 + random.nextInt(Math.max(1, lootItem.count));
+                        int count = 1;
+                        if (lootItem.count > 1) {
+                            count = 1 + random.nextInt(lootItem.count);
+                        }
                         rolled.add(new ItemStack(item, count));
                     }
                     break;
@@ -243,11 +246,6 @@ public class LootConfigManager {
         for (LootPoint point : LOOT_POINTS) {
             if (!point.dimension.equals(currentDim)) continue;
 
-            if (gameTime - point.lastSpawnAttempt < config.globalLootSpawnInterval) {
-                continue;
-            }
-            point.lastSpawnAttempt = gameTime;
-
             if (point.activeEntityUuid != null) {
                 Entity active = level.getEntity(point.activeEntityUuid);
                 if (active != null && active.isAlive()) {
@@ -258,10 +256,28 @@ public class LootConfigManager {
             }
 
             Player nearbyPlayer = level.getNearestPlayer(point.pos.getX(), point.pos.getY(), point.pos.getZ(), 64, false);
-            if (nearbyPlayer == null) continue;
-
-            if (level.random.nextDouble() > config.globalLootSpawnChance) {
+            if (nearbyPlayer == null) {
                 continue;
+            }
+
+            long timeSinceLastAttempt = gameTime - point.lastSpawnAttempt;
+
+            boolean isCatchUp = timeSinceLastAttempt >= (config.globalLootSpawnInterval * 1.5);
+
+            if (isCatchUp) {
+                point.lastSpawnAttempt = gameTime;
+                if (level.random.nextDouble() > 0.6) {
+                    continue; // compensation, 40%
+                }
+            } else {
+                if (timeSinceLastAttempt < config.globalLootSpawnInterval) {
+                    continue;
+                }
+                point.lastSpawnAttempt = gameTime;
+
+                if (level.random.nextDouble() > config.globalLootSpawnChance) {
+                    continue;
+                }
             }
 
             double angle = level.random.nextDouble() * 2 * Math.PI;
@@ -269,11 +285,14 @@ public class LootConfigManager {
             double spawnX = point.pos.getX() + Math.cos(angle) * radius + 0.5;
             double spawnZ = point.pos.getZ() + Math.sin(angle) * radius + 0.5;
 
-            int startY = point.pos.getY() + 10;
+            int startY = point.pos.getY() + 2;
+            int endY = point.pos.getY() - 2;
             int surfaceY = -1;
-            for (int y = startY; y >= point.pos.getY() - 10; y--) {
+            for (int y = startY; y >= endY; y--) {
                 BlockPos checkPos = BlockPos.containing(spawnX, y, spawnZ);
-                if (level.getBlockState(checkPos).isAir() && level.getBlockState(checkPos.below()).isSolid()) {
+                if (level.getBlockState(checkPos).isAir() &&
+                        level.getBlockState(checkPos.above()).isAir() &&
+                        level.getBlockState(checkPos.below()).isSolid()) {
                     surfaceY = y;
                     break;
                 }

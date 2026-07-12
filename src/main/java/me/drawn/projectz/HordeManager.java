@@ -13,6 +13,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Husk;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -40,7 +41,9 @@ import java.util.concurrent.CompletableFuture;
 public class HordeManager {
 
     private static boolean hordeTriggered = false;
-    private static final float zombieHealth = 18.0F;
+
+    private static final float zombieHealth = 13.0F;
+    private static final float huskHealth = 13.0F;
 
     public static boolean isUndead(LivingEntity entity) {
         return entity.getType().is(EntityTypeTags.UNDEAD);
@@ -49,8 +52,10 @@ public class HordeManager {
     // optimizations
     @SubscribeEvent
     public static void onZombieJoin(EntityJoinLevelEvent event) {
-        if (!event.getLevel().isClientSide() && event.getEntity() instanceof Zombie zombie) {
-            //zombie.setCanPickUpLoot(false);
+        if(event.getLevel().isClientSide())
+            return;
+
+        if (event.getEntity() instanceof Zombie zombie) {
             zombie.setBaby(false);
 
             // letting HordeManager handle it
@@ -72,6 +77,12 @@ public class HordeManager {
 
                 zombie.getAttribute(Attributes.STEP_HEIGHT).setBaseValue(1.25D);
             }
+        }
+
+        if(event.getEntity() instanceof Husk husk) {
+            husk.setCanPickUpLoot(true);
+            husk.setHealth(huskHealth);
+            husk.getAttribute(Attributes.MAX_HEALTH).setBaseValue(huskHealth);
         }
     }
 
