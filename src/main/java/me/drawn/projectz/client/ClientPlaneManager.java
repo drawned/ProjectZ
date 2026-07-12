@@ -66,7 +66,7 @@ public class ClientPlaneManager {
             z = sz + (ez - sz) * progress;
 
             ClientLevel level = Minecraft.getInstance().level;
-            if (level != null && ticksExisted % 40 == 0) {
+            if (level != null && ticksExisted % 47 == 0) {
                 var sound = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "airplane"));
                 if (sound != null) {
                     level.playLocalSound(x, y, z, sound, SoundSource.AMBIENT, 160F, 1.0F, false);

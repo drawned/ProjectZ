@@ -61,6 +61,11 @@ public class LootEntity extends Entity implements Container {
         this.originPointId = originPointId;
     }
 
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
+    }
+
     public UUID getOriginPointId() {
         return this.originPointId;
     }

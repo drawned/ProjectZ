@@ -42,6 +42,9 @@ public class LootEntityRenderer extends EntityRenderer<LootEntity> {
 
         Item item = switch (entity.getModel().toLowerCase()) {
             case "weapon" -> ProjectZ.CRATE_WEAPON.get();
+            case "crate", "small" -> ProjectZ.CRATE.get();
+            case "car", "mechanics", "toolbox" -> ProjectZ.CRATE_CAR.get();
+            case "large", "big", "large_crate" -> ProjectZ.CRATE_LARGE.get();
             case "medic" -> ProjectZ.CRATE_MEDIC.get();
             case "ammo" -> ProjectZ.CRATE_AMMO.get();
             default -> Items.CHEST.asItem();

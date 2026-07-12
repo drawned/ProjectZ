@@ -5,6 +5,7 @@ import com.deadzoke.ignitehud.client.GuiPlayerAttributes;
 import com.deadzoke.ignitehud.util.ColorUtil;
 import me.drawn.projectz.ProjectZ;
 import me.drawn.projectz.client.renders.AirdropCrateRenderer;
+import me.drawn.projectz.client.renders.FastZombieRenderer;
 import me.drawn.projectz.client.renders.LootEntityRenderer;
 import me.drawn.projectz.config.LootConfigManager;
 import net.minecraft.client.Minecraft;
@@ -12,6 +13,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -26,6 +28,8 @@ public class ClientModEvents {
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(EntityType.ZOMBIE, FastZombieRenderer::new);
+
         event.registerEntityRenderer(ProjectZ.AIRDROP_CRATE_ENTITY.get(), AirdropCrateRenderer::new);
         event.registerEntityRenderer(ProjectZ.LOOT_ENTITY.get(), LootEntityRenderer::new);
     }
