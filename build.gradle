@@ -14,6 +14,8 @@ group = "me.drawn.projectz"
 
 repositories {
     mavenLocal()
+
+    maven { url 'https://repo.bluecolored.de/releases' }
 }
 
 base {
@@ -108,6 +110,8 @@ configurations {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    compileOnly 'de.bluecolored:bluemap-api:2.7.7'
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

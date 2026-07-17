@@ -32,3 +32,8 @@ side = "CLIENT"
 modId = "ignitehud"
 type = "optional"
 side = "CLIENT"
+
+[[dependencies.projectz]]
+modId = "bluemap"
+type = "optional"
+side = "SERVER"

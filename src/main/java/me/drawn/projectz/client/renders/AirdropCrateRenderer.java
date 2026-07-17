@@ -40,7 +40,10 @@ public class AirdropCrateRenderer extends EntityRenderer<AirdropCrateEntity> {
         ItemRenderer itemRenderer = Minecraft.getInstance().getItemRenderer();
 
         BakedModel model = itemRenderer.getModel(stack, Minecraft.getInstance().level, null, 0);
-        itemRenderer.render(stack, net.minecraft.world.item.ItemDisplayContext.NONE, false, poseStack, buffer, 15728880, OverlayTexture.NO_OVERLAY, model);
+        itemRenderer.render(
+                stack, net.minecraft.world.item.ItemDisplayContext.NONE,
+                false, poseStack, buffer, 15728880,
+                OverlayTexture.NO_OVERLAY, model);
 
         poseStack.popPose();
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);

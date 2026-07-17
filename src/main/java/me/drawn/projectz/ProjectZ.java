@@ -6,6 +6,7 @@ import me.drawn.projectz.command.ModCommands;
 import me.drawn.projectz.config.LootConfigManager;
 import me.drawn.projectz.entity.AirdropCrateEntity;
 import me.drawn.projectz.entity.LootEntity;
+import me.drawn.projectz.hook.LootMarkersHook;
 import me.drawn.projectz.network.AirdropVisualPayload;
 import me.drawn.projectz.registry.ModSoundEvents;
 import net.minecraft.core.BlockPos;
@@ -18,7 +19,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -36,6 +37,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 @Mod(ProjectZ.MODID)
 public class ProjectZ {
@@ -75,6 +77,11 @@ public class ProjectZ {
 
     public ProjectZ(IEventBus modBus) {
         NeoForge.EVENT_BUS.register(new ServerEvents());
+
+        if(ModList.get().isLoaded("bluemap")) {
+            LOGGER.info("Bluemap encontrado.");
+            NeoForge.EVENT_BUS.register(new LootMarkersHook());
+        }
 
         ITEMS.register(modBus);
         ENTITIES.register(modBus);

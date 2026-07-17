@@ -8,10 +8,12 @@ import me.drawn.projectz.registry.ModSoundEvents;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -122,8 +124,12 @@ public class ClientPlaneManager {
             ItemStack stack = new ItemStack(ProjectZ.AIRPLANE_ITEM.get());
             ItemRenderer itemRenderer = mc.getItemRenderer();
 
+            int light = LevelRenderer.getLightColor(mc.level, BlockPos.containing(plane.x, plane.y, plane.z));
+
             BakedModel model = itemRenderer.getModel(stack, mc.level, null, 0);
-            itemRenderer.render(stack, net.minecraft.world.item.ItemDisplayContext.NONE, false, poseStack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY, model);
+            itemRenderer.render(stack,
+                    net.minecraft.world.item.ItemDisplayContext.NONE,
+                    false, poseStack, bufferSource, light, OverlayTexture.NO_OVERLAY, model);
 
             poseStack.popPose();
         }

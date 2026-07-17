@@ -5,13 +5,20 @@ import com.google.gson.GsonBuilder;
 import me.drawn.projectz.ProjectZ;
 import me.drawn.projectz.entity.LootEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.*;
@@ -239,6 +246,36 @@ public class LootConfigManager {
         return models;
     }
 
+    private static boolean isValidSurface(ServerLevel level, BlockPos pos, BlockState state) {
+        if (state.isAir()) return false;
+        if (!state.getFluidState().isEmpty()) return false;
+
+        Block block = state.getBlock();
+
+        if (block instanceof SlabBlock) {
+            return true;
+        }
+
+        if (state.is(BlockTags.WOOL_CARPETS)) {
+            BlockPos belowPos = pos.below();
+            BlockState belowState = level.getBlockState(belowPos);
+            return belowState.isFaceSturdy(level, belowPos, Direction.UP);
+        }
+
+        if (state.is(BlockTags.RAILS)) {
+            BlockPos belowPos = pos.below();
+            BlockState belowState = level.getBlockState(belowPos);
+            return belowState.isFaceSturdy(level, belowPos, Direction.UP);
+        }
+
+        return state.isFaceSturdy(level, pos, Direction.UP);
+    }
+
+    private static boolean isOpenSpace(ServerLevel level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        return state.isAir() || state.getCollisionShape(level, pos).isEmpty();
+    }
+
     public static void tickLootPoints(ServerLevel level) {
         long gameTime = level.getGameTime();
         String currentDim = level.dimension().location().toString();
@@ -261,13 +298,12 @@ public class LootConfigManager {
             }
 
             long timeSinceLastAttempt = gameTime - point.lastSpawnAttempt;
-
             boolean isCatchUp = timeSinceLastAttempt >= (config.globalLootSpawnInterval * 1.5);
 
             if (isCatchUp) {
                 point.lastSpawnAttempt = gameTime;
                 if (level.random.nextDouble() > 0.6) {
-                    continue; // compensation, 40%
+                    continue; // compensation 40%
                 }
             } else {
                 if (timeSinceLastAttempt < config.globalLootSpawnInterval) {
@@ -280,31 +316,50 @@ public class LootConfigManager {
                 }
             }
 
-            double angle = level.random.nextDouble() * 2 * Math.PI;
-            double radius = level.random.nextDouble() * point.range;
-            double spawnX = point.pos.getX() + Math.cos(angle) * radius + 0.5;
-            double spawnZ = point.pos.getZ() + Math.sin(angle) * radius + 0.5;
+            int maxAttempts = 15;
+            for (int attempt = 0; attempt < maxAttempts; attempt++) {
+                double angle = level.random.nextDouble() * 2 * Math.PI;
+                double radius = Math.sqrt(level.random.nextDouble()) * point.range;
 
-            int startY = point.pos.getY() + 2;
-            int endY = point.pos.getY() - 2;
-            int surfaceY = -1;
-            for (int y = startY; y >= endY; y--) {
-                BlockPos checkPos = BlockPos.containing(spawnX, y, spawnZ);
-                if (level.getBlockState(checkPos).isAir() &&
-                        level.getBlockState(checkPos.above()).isAir() &&
-                        level.getBlockState(checkPos.below()).isSolid()) {
-                    surfaceY = y;
+                int targetX = Mth.floor(point.pos.getX() + Math.cos(angle) * radius);
+                int targetZ = Mth.floor(point.pos.getZ() + Math.sin(angle) * radius);
+
+                int startY = point.pos.getY() + 2;
+                int endY = point.pos.getY() - 2;
+
+                BlockPos foundSurfacePos = null;
+                double spawnY = -1;
+
+                for (int y = startY; y >= endY; y--) {
+                    BlockPos checkPos = new BlockPos(targetX, y, targetZ);
+                    BlockState state = level.getBlockState(checkPos);
+
+                    if (isValidSurface(level, checkPos, state)) {
+                        if (isOpenSpace(level, checkPos.above()) && isOpenSpace(level, checkPos.above().above())) {
+
+                            VoxelShape collisionShape = state.getCollisionShape(level, checkPos);
+                            double blockHeight = collisionShape.isEmpty() ? 0.0 : collisionShape.max(Direction.Axis.Y);
+
+                            foundSurfacePos = checkPos;
+                            spawnY = checkPos.getY() + blockHeight;
+                            break;
+                        }
+                    }
+                }
+
+                if (foundSurfacePos != null) {
+                    double finalX = targetX + 0.5;
+                    double finalZ = targetZ + 0.5;
+
+                    LootEntity lootEntity = new LootEntity(ProjectZ.LOOT_ENTITY.get(), level);
+                    lootEntity.setLootId(point.lootId);
+                    lootEntity.setOriginPointId(point.id);
+                    lootEntity.setPos(finalX, spawnY, finalZ);
+                    level.addFreshEntity(lootEntity);
+                    point.activeEntityUuid = lootEntity.getUUID();
+
                     break;
                 }
-            }
-
-            if (surfaceY != -1) {
-                LootEntity lootEntity = new LootEntity(ProjectZ.LOOT_ENTITY.get(), level);
-                lootEntity.setLootId(point.lootId);
-                lootEntity.setOriginPointId(point.id);
-                lootEntity.setPos(spawnX, surfaceY, spawnZ);
-                level.addFreshEntity(lootEntity);
-                point.activeEntityUuid = lootEntity.getUUID();
             }
         }
     }
