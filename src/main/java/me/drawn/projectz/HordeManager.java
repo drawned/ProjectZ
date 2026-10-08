@@ -162,7 +162,7 @@ public class HordeManager {
         }
     }
 
-    private static void broadcastNoise(ServerLevel level, BlockPos pos, double radius, boolean global) {
+    public static void broadcastNoise(ServerLevel level, BlockPos pos, double radius, boolean global) {
         int zombies = 0;
         List<Zombie> nearby = level.getEntitiesOfClass(Zombie.class, new net.minecraft.world.phys.AABB(pos).inflate(radius));
         for (Zombie z : nearby) {

@@ -16,6 +16,11 @@ repositories {
     mavenLocal()
 
     maven { url 'https://repo.bluecolored.de/releases' }
+
+    maven {
+        name = "HenkelMax"
+        url = "https://maven.maxhenkel.de/repository/public"
+    }
 }
 
 base {
@@ -112,6 +117,8 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     compileOnly 'de.bluecolored:bluemap-api:2.7.7'
+
+    compileOnly "de.maxhenkel.voicechat:voicechat-api:2.6.20"
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

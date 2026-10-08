@@ -37,3 +37,11 @@ side = "CLIENT"
 modId = "bluemap"
 type = "optional"
 side = "SERVER"
+
+[[dependencies.projectz]]
+modId="voicechat_api"
+mandatory=true
+# Note that the mod ID "voicechat_api" was introduced with API version 2.6.0 - For older versions you need to depend on the mod ID "voicechat"
+versionRange="[2,)"
+ordering="AFTER"
+side="BOTH"

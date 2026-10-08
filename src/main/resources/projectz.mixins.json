@@ -6,13 +6,15 @@
   "mixins": [
     "ExperienceMixins$LivingEntityMixin",
     "ExperienceMixins$MonsterMixin",
-    "VoxyRenderSystemMixin",
+    "VoxyMapperMixin",
+    "VoxyStateEntryMixin",
     "ZombieMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "client": [
+    "CameraMixin",
     "KeyboardMixin"
   ]
 }
