@@ -1,6 +1,7 @@
 package me.drawn.projectz;
 
 import com.mojang.logging.LogUtils;
+import me.drawn.projectz.client.ClientLightningManager;
 import me.drawn.projectz.client.ClientPlaneManager;
 import me.drawn.projectz.command.ModCommands;
 import me.drawn.projectz.config.LootConfigManager;
@@ -8,6 +9,7 @@ import me.drawn.projectz.entity.AirdropCrateEntity;
 import me.drawn.projectz.entity.LootEntity;
 import me.drawn.projectz.hook.LootMarkersHook;
 import me.drawn.projectz.network.AirdropVisualPayload;
+import me.drawn.projectz.network.DistantLightningPayload;
 import me.drawn.projectz.registry.ModSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -101,6 +103,12 @@ public class ProjectZ {
                 AirdropVisualPayload.TYPE,
                 AirdropVisualPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> ClientPlaneManager.addPlane(payload))
+        );
+
+        registrar.playToClient(
+                DistantLightningPayload.TYPE,
+                DistantLightningPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> ClientLightningManager.spawnDistantLightning(payload))
         );
     }
 

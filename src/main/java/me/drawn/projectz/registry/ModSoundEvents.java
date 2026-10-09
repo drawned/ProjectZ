@@ -12,4 +12,9 @@ public class ModSoundEvents {
 
     public static final DeferredHolder<SoundEvent, SoundEvent> AIRPLANE_SOUND = SOUND_EVENTS.register("airplane",
             () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "airplane")));
+
+    public static final DeferredHolder<SoundEvent, SoundEvent> FAR_THUNDER = SOUND_EVENTS.register(
+            "far_thunder",
+            () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(ProjectZ.MODID, "far_thunder"))
+    );
 }
