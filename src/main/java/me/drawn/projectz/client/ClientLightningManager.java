@@ -59,17 +59,16 @@ public class ClientLightningManager {
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
 
-        // 1. Atualiza os raios e sincroniza o clarão próximo com shaders/vanilla
         ACTIVE_STRIKES.removeIf(s -> {
             s.currentAge[0]++;
 
-            // Se o raio caiu perto (< 280 blocos), ativa a iluminação global nativa
+            // Ilumina o ambiente e as nuvens volumétricas dos shaders no pico da piscada
             if (mc.player != null && mc.level != null) {
-                double dist = mc.player.position().distanceTo(s.basePos);
-                if (dist < 280.0) {
-                    int age = s.currentAge[0];
-                    // Pulso duplo nos frames de pico
-                    if (age == 1 || age == 3) {
+                int age = s.currentAge[0];
+                if (age == 1 || age == 3) {
+                    double dist = mc.player.position().distanceTo(s.basePos);
+                    // Faz as nuvens do shader e o horizonte piscarem mesmo a distâncias longas
+                    if (dist < 850.0) {
                         mc.level.setSkyFlashTime(2);
                     }
                 }
@@ -78,7 +77,6 @@ public class ClientLightningManager {
             return s.currentAge[0] >= s.maxAge;
         });
 
-        // 2. Toca os trovões atrasados
         if (mc.player == null) return;
 
         Iterator<PendingThunder> it = PENDING_SOUNDS.iterator();
@@ -130,12 +128,12 @@ public class ClientLightningManager {
         Vec3 cam = event.getCamera().getPosition();
         Matrix4f mat = event.getPoseStack().last().pose();
 
-        // Configuração OpenGL (Compatível com Shaders e Voxy)
+        // Estados OpenGL
         RenderSystem.enableDepthTest();
         RenderSystem.depthFunc(GL11.GL_LEQUAL);
         RenderSystem.depthMask(false);
+        RenderSystem.disableCull(); // CORREÇÃO: Impede que o raio suma dependendo da rotação da câmera
         RenderSystem.enableBlend();
-        // Blend aditivo para brilho de plasma incandescente
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
         RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
@@ -146,14 +144,17 @@ public class ClientLightningManager {
             float flashFactor = getFlashIntensity(strike.currentAge[0]);
             if (flashFactor <= 0.01F) continue;
 
-            // 1. O Raio principal
+            // 1. Tronco vertical do raio com Billboarding 3D
             renderBoltSegments(buffer, mat, cam, strike.basePos, strike.seed, flashFactor);
 
-            // 2. Clarão atmosférico nas nuvens (ilumina a cúpula do céu)
-            renderCloudFlash(buffer, mat, cam, strike.basePos, flashFactor);
+            // 2. Galhos no topo que se espalham pelas nuvens
+            renderCloudBranches(buffer, mat, cam, strike.basePos, strike.seed, flashFactor);
 
-            // 3. Clarão de impacto no solo
-            renderGroundFlash(buffer, mat, cam, strike.basePos, flashFactor);
+            // 3. Clarão radial suave no céu (sem cantos quadrados)
+            renderSmoothCloudGlow(buffer, mat, cam, strike.basePos, flashFactor);
+
+            // 4. Clarão de impacto no chão
+            renderSmoothGroundGlow(buffer, mat, cam, strike.basePos, flashFactor);
         }
 
         MeshData meshData = buffer.build();
@@ -162,21 +163,19 @@ public class ClientLightningManager {
         }
 
         // Restaura estados
+        RenderSystem.enableCull();
         RenderSystem.defaultBlendFunc();
         RenderSystem.depthMask(true);
         RenderSystem.disableBlend();
     }
 
-    /**
-     * Curva física de piscada de raio (Double-Return Stroke)
-     */
     private static float getFlashIntensity(int age) {
         return switch (age) {
-            case 0 -> 0.65F; // Ataque inicial
-            case 1 -> 1.00F; // Pico máximo de luminosidade
-            case 2 -> 0.15F; // Queda rápida da primeira descarga
-            case 3 -> 0.85F; // Segundo pulso forte (piscada)
-            case 4 -> 0.35F; // Dissipação
+            case 0 -> 0.70F;
+            case 1 -> 1.00F;
+            case 2 -> 0.15F;
+            case 3 -> 0.85F;
+            case 4 -> 0.30F;
             default -> 0.00F;
         };
     }
@@ -194,8 +193,8 @@ public class ClientLightningManager {
 
         for (int i = 0; i < segments; i++) {
             double nextY = curY - stepY;
-            double nextX = curX + (rand.nextDouble() - 0.5) * 28.0;
-            double nextZ = curZ + (rand.nextDouble() - 0.5) * 28.0;
+            double nextX = curX + (rand.nextDouble() - 0.5) * 26.0;
+            double nextZ = curZ + (rand.nextDouble() - 0.5) * 26.0;
 
             float x1 = (float) (curX - cam.x);
             float y1 = (float) (curY - cam.y);
@@ -207,10 +206,10 @@ public class ClientLightningManager {
 
             float width = 2.4F;
 
-            // Núcleo branco
-            drawSegmentQuad(buffer, mat, x1, y1, z1, x2, y2, z2, width, 1.0F, 1.0F, 1.0F, 0.95F * intensity);
-            // Halo azul-elétrico
-            drawSegmentQuad(buffer, mat, x1, y1, z1, x2, y2, z2, width * 3.5F, 0.4F, 0.65F, 1.0F, 0.45F * intensity);
+            // Núcleo branco puro
+            drawBillboardSegment(buffer, mat, x1, y1, z1, x2, y2, z2, width, 1.0F, 1.0F, 1.0F, 0.95F * intensity);
+            // Halo azul elétrico
+            drawBillboardSegment(buffer, mat, x1, y1, z1, x2, y2, z2, width * 3.5F, 0.45F, 0.7F, 1.0F, 0.40F * intensity);
 
             curX = nextX;
             curY = nextY;
@@ -219,44 +218,146 @@ public class ClientLightningManager {
     }
 
     /**
-     * Iluminação volumétrica gigante nas nuvens (raio de ~180 blocos no topo do céu)
+     * Gera ramos horizontais no topo que rasgam as nuvens (Anvil Crawlers)
      */
-    private static void renderCloudFlash(BufferBuilder buffer, Matrix4f mat, Vec3 cam, Vec3 basePos, float intensity) {
-        float cx = (float) (basePos.x - cam.x);
-        float cy = (float) (390.0 - cam.y);
-        float cz = (float) (basePos.z - cam.z);
+    private static void renderCloudBranches(BufferBuilder buffer, Matrix4f mat, Vec3 cam, Vec3 basePos, long seed, float intensity) {
+        Random rand = new Random(seed + 9999);
 
-        float radius = 180.0F;
-        float alpha = 0.28F * intensity;
+        int branchCount = 3 + rand.nextInt(3); // 3 a 5 ramos principais
+        for (int b = 0; b < branchCount; b++) {
+            double curX = basePos.x;
+            double curY = 450.0 + (rand.nextDouble() - 0.5) * 15.0;
+            double curZ = basePos.z;
 
-        // Quad horizontal no topo da tempestade
-        buffer.addVertex(mat, cx - radius, cy, cz - radius).setColor(0.55F, 0.75F, 1.0F, alpha);
-        buffer.addVertex(mat, cx + radius, cy, cz - radius).setColor(0.55F, 0.75F, 1.0F, alpha);
-        buffer.addVertex(mat, cx + radius, cy, cz + radius).setColor(0.55F, 0.75F, 1.0F, alpha);
-        buffer.addVertex(mat, cx - radius, cy, cz + radius).setColor(0.55F, 0.75F, 1.0F, alpha);
+            double angle = rand.nextDouble() * Math.PI * 2;
+            int branchSegments = 6 + rand.nextInt(5);
+
+            for (int i = 0; i < branchSegments; i++) {
+                double nextX = curX + Math.cos(angle) * 16.0 + (rand.nextDouble() - 0.5) * 10.0;
+                double nextY = curY + (rand.nextDouble() - 0.5) * 6.0;
+                double nextZ = curZ + Math.sin(angle) * 16.0 + (rand.nextDouble() - 0.5) * 10.0;
+
+                float x1 = (float) (curX - cam.x);
+                float y1 = (float) (curY - cam.y);
+                float z1 = (float) (curZ - cam.z);
+
+                float x2 = (float) (nextX - cam.x);
+                float y2 = (float) (nextY - cam.y);
+                float z2 = (float) (nextZ - cam.z);
+
+                float width = 1.2F;
+
+                drawBillboardSegment(buffer, mat, x1, y1, z1, x2, y2, z2, width, 1.0F, 1.0F, 1.0F, 0.85F * intensity);
+                drawBillboardSegment(buffer, mat, x1, y1, z1, x2, y2, z2, width * 2.8F, 0.4F, 0.65F, 1.0F, 0.35F * intensity);
+
+                curX = nextX;
+                curY = nextY;
+                curZ = nextZ;
+            }
+        }
     }
 
     /**
-     * Clarão circular espalhado pelo chão ao redor do ponto de queda
+     * Clarão com fade radial suave (elimina cantos ou quadrados visíveis)
      */
-    private static void renderGroundFlash(BufferBuilder buffer, Matrix4f mat, Vec3 cam, Vec3 basePos, float intensity) {
+    private static void renderSmoothCloudGlow(BufferBuilder buffer, Matrix4f mat, Vec3 cam, Vec3 basePos, float intensity) {
+        float cx = (float) (basePos.x - cam.x);
+        float cy = (float) (450.0 - cam.y);
+        float cz = (float) (basePos.z - cam.z);
+
+        float r = 260.0F; // Raio de iluminação suave
+        float alphaCenter = 0.32F * intensity;
+
+        // Malha de 4 quads com centro brilhante e todas as bordas com ALFA ZERO
+        // Quadrante 1 (Noroeste)
+        buffer.addVertex(mat, cx, cy, cz).setColor(0.6F, 0.8F, 1.0F, alphaCenter);
+        buffer.addVertex(mat, cx - r, cy, cz).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx - r, cy, cz - r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx, cy, cz - r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+
+        // Quadrante 2 (Nordeste)
+        buffer.addVertex(mat, cx, cy, cz).setColor(0.6F, 0.8F, 1.0F, alphaCenter);
+        buffer.addVertex(mat, cx, cy, cz - r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx + r, cy, cz - r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx + r, cy, cz).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+
+        // Quadrante 3 (Sudeste)
+        buffer.addVertex(mat, cx, cy, cz).setColor(0.6F, 0.8F, 1.0F, alphaCenter);
+        buffer.addVertex(mat, cx + r, cy, cz).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx + r, cy, cz + r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx, cy, cz + r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+
+        // Quadrante 4 (Sudoeste)
+        buffer.addVertex(mat, cx, cy, cz).setColor(0.6F, 0.8F, 1.0F, alphaCenter);
+        buffer.addVertex(mat, cx, cy, cz + r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx - r, cy, cz + r).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+        buffer.addVertex(mat, cx - r, cy, cz).setColor(0.6F, 0.8F, 1.0F, 0.0F);
+    }
+
+    private static void renderSmoothGroundGlow(BufferBuilder buffer, Matrix4f mat, Vec3 cam, Vec3 basePos, float intensity) {
         float gx = (float) (basePos.x - cam.x);
         float gy = (float) (basePos.y + 1.2 - cam.y);
         float gz = (float) (basePos.z - cam.z);
 
-        float groundRadius = 55.0F;
-        float alpha = 0.35F * intensity;
+        float r = 65.0F;
+        float alpha = 0.38F * intensity;
 
-        buffer.addVertex(mat, gx - groundRadius, gy, gz - groundRadius).setColor(0.7F, 0.85F, 1.0F, alpha);
-        buffer.addVertex(mat, gx + groundRadius, gy, gz - groundRadius).setColor(0.7F, 0.85F, 1.0F, alpha);
-        buffer.addVertex(mat, gx + groundRadius, gy, gz + groundRadius).setColor(0.7F, 0.85F, 1.0F, alpha);
-        buffer.addVertex(mat, gx - groundRadius, gy, gz + groundRadius).setColor(0.7F, 0.85F, 1.0F, alpha);
+        // Malha radial no chão com bordas com alfa zero
+        buffer.addVertex(mat, gx, gy, gz).setColor(0.7F, 0.85F, 1.0F, alpha);
+        buffer.addVertex(mat, gx - r, gy, gz).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx - r, gy, gz - r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx, gy, gz - r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+
+        buffer.addVertex(mat, gx, gy, gz).setColor(0.7F, 0.85F, 1.0F, alpha);
+        buffer.addVertex(mat, gx, gy, gz - r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx + r, gy, gz - r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx + r, gy, gz).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+
+        buffer.addVertex(mat, gx, gy, gz).setColor(0.7F, 0.85F, 1.0F, alpha);
+        buffer.addVertex(mat, gx + r, gy, gz).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx + r, gy, gz + r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx, gy, gz + r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+
+        buffer.addVertex(mat, gx, gy, gz).setColor(0.7F, 0.85F, 1.0F, alpha);
+        buffer.addVertex(mat, gx, gy, gz + r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx - r, gy, gz + r).setColor(0.7F, 0.85F, 1.0F, 0.0F);
+        buffer.addVertex(mat, gx - r, gy, gz).setColor(0.7F, 0.85F, 1.0F, 0.0F);
     }
 
-    private static void drawSegmentQuad(BufferBuilder buffer, Matrix4f mat, float x1, float y1, float z1, float x2, float y2, float z2, float width, float r, float g, float b, float a) {
-        buffer.addVertex(mat, x1 - width, y1, z1).setColor(r, g, b, a);
-        buffer.addVertex(mat, x1 + width, y1, z1).setColor(r, g, b, a);
-        buffer.addVertex(mat, x2 + width, y2, z2).setColor(r, g, b, a);
-        buffer.addVertex(mat, x2 - width, y2, z2).setColor(r, g, b, a);
+    /**
+     * Billboarding 3D por Produto Vetorial:
+     * Calcula o vetor perpendicular à linha de visão da câmera, garantindo que o raio
+     * tenha espessura perfeita e NUNCA fique invisível ou em "fio de navalha", de qualquer ângulo.
+     */
+    private static void drawBillboardSegment(BufferBuilder buffer, Matrix4f mat, float x1, float y1, float z1, float x2, float y2, float z2, float width, float r, float g, float b, float a) {
+        float dx = x2 - x1;
+        float dy = y2 - y1;
+        float dz = z2 - z1;
+
+        // Ponto central do segmento
+        float midX = (x1 + x2) * 0.5F;
+        float midY = (y1 + y2) * 0.5F;
+        float midZ = (z1 + z2) * 0.5F;
+
+        // Produto vetorial entre a direção do raio e a linha de visão do jogador
+        float nx = dy * midZ - dz * midY;
+        float ny = dz * midX - dx * midZ;
+        float nz = dx * midY - dy * midX;
+
+        float len = (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        if (len < 0.001F) {
+            nx = 1.0F; ny = 0.0F; nz = 0.0F;
+        } else {
+            nx /= len; ny /= len; nz /= len;
+        }
+
+        float offX = nx * width;
+        float offY = ny * width;
+        float offZ = nz * width;
+
+        buffer.addVertex(mat, x1 - offX, y1 - offY, z1 - offZ).setColor(r, g, b, a);
+        buffer.addVertex(mat, x1 + offX, y1 + offY, z1 + offZ).setColor(r, g, b, a);
+        buffer.addVertex(mat, x2 + offX, y2 + offY, z2 + offZ).setColor(r, g, b, a);
+        buffer.addVertex(mat, x2 - offX, y2 - offY, z2 - offZ).setColor(r, g, b, a);
     }
 }
