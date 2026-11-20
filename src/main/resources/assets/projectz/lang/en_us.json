@@ -1,0 +1,18 @@
+{
+  "gui.projectz.survival_inventory": "Gear",
+  "gui.projectz.tab.inventory": "Inventory",
+  "gui.projectz.tab.crafting": "Crafting",
+  "gui.projectz.tab.map": "Map",
+  "gui.projectz.map_placeholder": "Map coming soon.",
+  "gui.projectz.weapon_primary": "Hand 1",
+  "gui.projectz.weapon_secondary": "Hand 2",
+  "gui.projectz.section.armor": "Armor",
+  "gui.projectz.section.character": "You",
+  "gui.projectz.section.pack": "Pack",
+  "gui.projectz.section.hands": "Hands",
+  "gui.projectz.offhand": "Off",
+  "gui.projectz.crafting.hint": "Shift-click sends the item back to the pack.",
+  "key.categories.projectz": "Project Z",
+  "key.projectz.primary": "Primary hand",
+  "key.projectz.secondary": "Secondary hand"
+}

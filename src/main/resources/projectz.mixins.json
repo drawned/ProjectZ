@@ -6,6 +6,11 @@
   "mixins": [
     "ExperienceMixins$LivingEntityMixin",
     "ExperienceMixins$MonsterMixin",
+    "AbstractContainerMenuAccess",
+    "InventoryMenuAccess",
+    "PlayerInventoryMenuAccessor",
+    "PlayerInventoryInsertMixin",
+    "ContainerQuickMoveMixin",
     "VoxyMapperMixin",
     "VoxyStateEntryMixin",
     "ZombieMixin"
@@ -14,7 +19,9 @@
     "defaultRequire": 1
   },
   "client": [
+    "AbstractContainerScreenMixin",
     "CameraMixin",
-    "KeyboardMixin"
+    "KeyboardMixin",
+    "MouseHandlerMixin"
   ]
 }

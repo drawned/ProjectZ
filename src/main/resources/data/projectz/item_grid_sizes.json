@@ -1,0 +1,8 @@
+{
+  "sizes": [
+    { "item": "minecraft:bow", "width": 3, "height": 1 },
+    { "item": "minecraft:crossbow", "width": 3, "height": 1 },
+    { "item": "minecraft:trident", "width": 3, "height": 1 },
+    { "item": "minecraft:shield", "width": 2, "height": 2 }
+  ]
+}

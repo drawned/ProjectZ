@@ -1,0 +1,13 @@
+[
+  {
+    "label": "Gradle: Build / ShadowJar",
+    "command": "./gradlew build",
+    "use_new_terminal": false,
+    "allow_concurrent_runs": false
+  },
+  {
+    "label": "Gradle: Clean",
+    "command": "./gradlew clean",
+    "use_new_terminal": false
+  }
+]

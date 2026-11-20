@@ -1,0 +1,18 @@
+{
+  "gui.projectz.survival_inventory": "Equipamento",
+  "gui.projectz.tab.inventory": "Inventário",
+  "gui.projectz.tab.crafting": "Crafting",
+  "gui.projectz.tab.map": "Mapa",
+  "gui.projectz.map_placeholder": "Mapa em breve.",
+  "gui.projectz.weapon_primary": "Mão 1",
+  "gui.projectz.weapon_secondary": "Mão 2",
+  "gui.projectz.section.armor": "Armadura",
+  "gui.projectz.section.character": "Você",
+  "gui.projectz.section.pack": "Mochila",
+  "gui.projectz.section.hands": "Mãos",
+  "gui.projectz.offhand": "Off",
+  "gui.projectz.crafting.hint": "Shift devolve o item para a mochila.",
+  "key.categories.projectz": "Project Z",
+  "key.projectz.primary": "Mão primária",
+  "key.projectz.secondary": "Mão secundária"
+}

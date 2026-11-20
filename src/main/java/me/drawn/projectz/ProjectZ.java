@@ -8,11 +8,20 @@ import me.drawn.projectz.config.LootConfigManager;
 import me.drawn.projectz.entity.AirdropCrateEntity;
 import me.drawn.projectz.entity.LootEntity;
 import me.drawn.projectz.hook.LootMarkersHook;
+import me.drawn.projectz.inventory.GridInventoryNetworking;
 import me.drawn.projectz.network.AirdropVisualPayload;
 import me.drawn.projectz.network.DistantLightningPayload;
+import me.drawn.projectz.network.GridInventorySyncPayload;
+import me.drawn.projectz.network.WeaponBarSyncPayload;
+import me.drawn.projectz.network.WeaponSelectPayload;
+import me.drawn.projectz.inventory.SurvivalStorage;
+import me.drawn.projectz.inventory.ItemSizeDataLoader;
+import me.drawn.projectz.inventory.ItemSizeRegistry;
+import me.drawn.projectz.registry.ModAttachments;
 import me.drawn.projectz.registry.ModSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -22,6 +31,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -45,6 +55,10 @@ import java.util.UUID;
 public class ProjectZ {
     public static final String MODID = "projectz";
     public static final Logger LOGGER = LogUtils.getLogger();
+
+    public static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    }
 
     public static int HORDE_CAP = 800;
     public static int HORDE_DAY_INTERVAL = 5;
@@ -88,7 +102,9 @@ public class ProjectZ {
         ITEMS.register(modBus);
         ENTITIES.register(modBus);
         ModSoundEvents.SOUND_EVENTS.register(modBus);
+        ModAttachments.ATTACHMENT_TYPES.register(modBus);
 
+        ItemSizeRegistry.bootstrapDefaults();
         LootConfigManager.init();
 
         modBus.addListener(this::registerPayloads);
@@ -110,11 +126,46 @@ public class ProjectZ {
                 DistantLightningPayload.STREAM_CODEC,
                 (payload, context) -> context.enqueueWork(() -> ClientLightningManager.spawnDistantLightning(payload))
         );
+
+        registrar.playToClient(
+                GridInventorySyncPayload.TYPE,
+                GridInventorySyncPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    if (context.player() != null) {
+                        GridInventoryNetworking.applyClientSync(context.player(), payload);
+                    }
+                })
+        );
+
+        registrar.playToClient(
+                WeaponBarSyncPayload.TYPE,
+                WeaponBarSyncPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    if (context.player() != null) {
+                        GridInventoryNetworking.applyWeaponBar(context.player(), payload.selected());
+                    }
+                })
+        );
+
+        registrar.playToServer(
+                WeaponSelectPayload.TYPE,
+                WeaponSelectPayload.STREAM_CODEC,
+                (payload, context) -> context.enqueueWork(() -> {
+                    if (context.player() instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+                        SurvivalStorage.select(serverPlayer, payload.selected());
+                    }
+                })
+        );
     }
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
         ModCommands.register(event.getDispatcher());
+    }
+
+    @SubscribeEvent
+    public void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new ItemSizeDataLoader());
     }
 
     @SubscribeEvent
